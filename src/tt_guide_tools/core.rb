@@ -30,12 +30,7 @@ end
 
 if defined?( TT::Lib ) && TT::Lib.compatible?( '2.7.0', 'Guide Tools' )
 
-module TT::Plugins::GuideTools  
-  
-  ### CONSTANTS ### ------------------------------------------------------------
-  
-  VERSION = '1.3.0'
-  
+module TT::Plugins::GuideTools
   
   ### MENU & TOOLBARS ### ------------------------------------------------------
   
