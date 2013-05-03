@@ -1,46 +1,45 @@
-#-----------------------------------------------------------------------------
-# Compatible: SketchUp 7 (PC)
-#             (other versions untested)
-#-----------------------------------------------------------------------------
-#
-# CHANGELOG
-# 1.3.0 - 21.10.2010
-#		 * CPoint at Camera Eye
-#
-# 1.2.0 - 11.10.2010
-#		 * CPoint at Edge-Face Intersection
-#		 * CPoint at Edge-Edge Intersection
-#
-# 1.1.0 - 06.09.2010
-#		 * CPoint at Insertion Point.
-#
-# 1.0.0 - 30.08.2010
-#		 * Initial release.
-#
-#-----------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 #
 # Thomas Thomassen
 # thomas[at]thomthom[dot]net
 #
-#-----------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 require 'sketchup.rb'
-require 'TT_Lib2/core.rb'
+begin
+  require 'TT_Lib2/core.rb'
+rescue LoadError => e
+  module TT
+    if @lib2_update.nil?
+      url = 'http://www.thomthom.net/software/sketchup/tt_lib2/errors/not-installed'
+      options = {
+        :dialog_title => 'TT_Lib² Not Installed',
+        :scrollable => false, :resizable => false, :left => 200, :top => 200
+      }
+      w = UI::WebDialog.new( options )
+      w.set_size( 500, 300 )
+      w.set_url( "#{url}?plugin=#{File.basename( __FILE__ )}" )
+      w.show
+      @lib2_update = w
+    end
+  end
+end
 
-TT::Lib.compatible?('2.4.0', 'TT Guide Tools')
 
-#-----------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+if defined?( TT::Lib ) && TT::Lib.compatible?( '2.7.0', 'Guide Tools' )
 
 module TT::Plugins::GuideTools  
   
-  ### CONSTANTS ### --------------------------------------------------------
+  ### CONSTANTS ### ------------------------------------------------------------
   
   VERSION = '1.3.0'
   
   
-  ### MENU & TOOLBARS ### --------------------------------------------------
+  ### MENU & TOOLBARS ### ------------------------------------------------------
   
-  unless file_loaded?( File.basename(__FILE__) )
+  unless file_loaded?( __FILE__ )
     m = TT.menu('Plugins').add_submenu('Guide Tools')
     m.add_item('CPoint at Arc Center')          { self.cpoint_at_arc_center }
     m.add_item('CPoint at Circle Center')       { self.cpoint_at_arc_center(true) }
@@ -57,7 +56,7 @@ module TT::Plugins::GuideTools
   end
   
   
-  ### MAIN SCRIPT ### ------------------------------------------------------
+  ### MAIN SCRIPT ### ----------------------------------------------------------
   
   # 1.3.0
   # Adds CPoint at camera eye
@@ -309,14 +308,42 @@ module TT::Plugins::GuideTools
   end
   
   
-  ### DEBUG ### ------------------------------------------------------------
+  ### DEBUG ### ----------------------------------------------------------------
   
-  def self.reload
+  # @note Debug method to reload the plugin.
+  #
+  # @example
+  #   TT::Plugins::GuideTools.reload
+  #
+  # @param [Boolean] tt_lib Reloads TT_Lib2 if +true+.
+  #
+  # @return [Integer] Number of files reloaded.
+  # @since 1.0.0
+  def self.reload( tt_lib = false )
+    original_verbose = $VERBOSE
+    $VERBOSE = nil
+    TT::Lib.reload if tt_lib
+    # Core file (this)
     load __FILE__
+    # Supporting files
+    if defined?( PATH ) && File.exist?( PATH )
+      x = Dir.glob( File.join(PATH, '*.{rb,rbs}') ).each { |file|
+        load file
+      }
+      x.length + 1
+    else
+      1
+    end
+  ensure
+    $VERBOSE = original_verbose
   end
-  
+
 end # module
 
-#-----------------------------------------------------------------------------
-file_loaded( File.basename(__FILE__) )
-#-----------------------------------------------------------------------------
+end # if TT_Lib
+
+#-------------------------------------------------------------------------------
+
+file_loaded( __FILE__ )
+
+#-------------------------------------------------------------------------------
