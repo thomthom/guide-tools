@@ -31,6 +31,10 @@ end
 if defined?( TT::Lib ) && TT::Lib.compatible?( '2.7.0', 'Guide Tools' )
 
 module TT::Plugins::GuideTools
+
+  if defined?(Sketchup::Set)
+    Set = Sketchup::Set
+  end
   
   ### MENU & TOOLBARS ### ------------------------------------------------------
   
